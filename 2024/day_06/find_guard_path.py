@@ -7,18 +7,96 @@ class Direction(Enum):
     Down = 2
     Left = 3
     Right = 4
-    
-class MapInformation:
 
+class Position:
+    def __init__(self, row, column):
+        self.row = row
+        self.column = column
+    
+class State:
+    def __init__(self, position, direction):
+        self.position = position
+        self.direction = direction
+
+class Guard:
+    def __init__(self, state):
+        self.current_state = state
+        self.previous_state = None
+
+    def create_from_file(filename):
+        with open(filename) as file:
+            for line_number, line_text in enumerate(file):    
+                for match in re.finditer("\^", line_text):
+                    return Guard(State(Position(line_number, match.span()[0]), Direction.Up))
+    
+    def move(self, map):
+        self.previous_state = State(Position(self.current_state.position.row, self.current_state.position.column), self.current_state.direction)
+        match self.current_state.direction:
+            case Direction.Up:
+                return self.move_up(map)
+            case Direction.Down:
+                return self.move_down(map)
+            case Direction.Left:
+                return self.move_left(map)    
+            case Direction.Right:
+                return self.move_right(map)
+            
+    def move_up(self, map):
+        if (self.current_state.position.column in map.obstacles_by_column):
+            rows = list(filter(lambda row : row < self.current_state.position.row, map.obstacles_by_column[self.current_state.position.column]))
+            if len(rows) > 0:
+                self.current_state.position.row = max(rows) + 1
+                self.current_state.direction = Direction.Right
+            else:
+                self.current_state.position.row = -1
+        else:
+            self.current_state.position.row = -1
+        return [State(Position(row, self.current_state.position.column), self.previous_state.direction) for row in range(self.previous_state.position.row, self.current_state.position.row, -1)]
+    
+    def move_down(self, map):
+        if self.current_state.position.column in map.obstacles_by_column:
+            rows = list(filter(lambda row : row > self.current_state.position.row, map.obstacles_by_column[self.current_state.position.column]))
+            if len(rows) > 0:
+                self.current_state.position.row = min(rows) - 1
+                self.current_state.direction = Direction.Left
+            else:
+                self.current_state.position.row = map.size
+        else:
+            self.current_state.position.row = map.size
+        return [State(Position(row, self.current_state.position.column), self.previous_state.direction) for row in range(self.previous_state.position.row, self.current_state.position.row, 1)]
+    
+    def move_left(self, map):
+        if self.current_state.position.row in map.obstacles_by_row:
+            columns = list(filter(lambda col : col < self.current_state.position.column, map.obstacles_by_row[self.current_state.position.row]))
+            if len(columns) > 0:
+                self.current_state.position.column = max(columns) + 1
+                self.current_state.direction = Direction.Up
+            else:
+                self.current_state.position.column = -1
+        else:
+            self.current_state.position.column = -1
+        return [State(Position(self.current_state.position.row, column), self.previous_state.direction) for column in range(self.previous_state.position.column, self.current_state.position.column, -1)]
+    
+    def move_right(self, map):
+        if self.current_state.position.row in map.obstacles_by_row:
+            columns = list(filter(lambda col : col > self.current_state.position.column, map.obstacles_by_row[self.current_state.position.row]))
+            if len(columns) > 0:
+                self.current_state.position.column = min(columns) - 1
+                self.current_state.direction = Direction.Down
+            else:
+                self.current_state.position.column = map.size
+        else:
+            self.current_state.position.column = map.size
+        return [State(Position(self.current_state.position.row, column), self.previous_state.direction) for column in range(self.previous_state.position.column, self.current_state.position.column, 1)]
+    
+    def still_in_map(self, map):
+        return self.current_state.position.row != -1 and self.current_state.position.row != map.size and self.current_state.position.column != -1 and self.current_state.position.column != map.size
+    
+class Map:
     def __init__(self):
         self.obstacles_by_row = dict()
         self.obstacles_by_column = dict()
-        self.guard_information = None
         self.size = 0
-        self.guard_infos = set()
-    
-    def reset_guard_infos(self):
-        self.guard_infos.clear()
         
     def add_obstacle(self, row, column):
         if (row in self.obstacles_by_row):
@@ -35,30 +113,20 @@ class MapInformation:
         self.obstacles_by_row[row].remove(column)
         self.obstacles_by_column[column].remove(row)
 
-        
-class GuardInformation:
-    def __init__(self, row, column, direction):
-        self.row = row
-        self.column = column
-        self.direction = direction
+    def create_from_file(filename):
+        map = Map()
+        with open(filename) as file:
+            for line_number, line_text in enumerate(file):
+                if line_number == 0:
+                    map.size = len(line_text.rstrip())
+                for match in re.finditer("#", line_text):
+                    row = line_number
+                    column = match.span()[0]
+                    map.add_obstacle(row, column)
+        return map
+    
 
-def load_map(filename):
-    map_info = MapInformation()
-    with open(filename) as map_file:
-        for line_number, line_text in enumerate(map_file):
-            if line_number == 0:
-                map_info.size = len(line_text.rstrip())
-            for match in re.finditer("#", line_text):
-                row = line_number
-                column = match.span()[0]
-                map_info.add_obstacle(row, column)
-                
-            if map_info.guard_information == None:
-                for match in re.finditer("\^", line_text):
-                    map_info.guard_information = GuardInformation(line_number, match.span()[0], Direction.Up)
-    return map_info
-
-def move(map_info : MapInformation):
+""" def move(map_info):
     guard_info = map_info.guard_information
     initial_position = (guard_info.row, guard_info.column)
     initial_direction = guard_info.direction
@@ -117,18 +185,27 @@ def move(map_info : MapInformation):
         else:
             map_info.guard_infos.add(key)
 
-    return new_guard_infos
+    return new_guard_infos """
         
+    
 
-def guard_in_map(map_info):
-    return map_info.guard_information.row != -1 and map_info.guard_information.row != map_info.size and map_info.guard_information.column != -1 and map_info.guard_information.column != map_info.size
 
-map_info = load_map("map.txt")
-initial_guard_information = GuardInformation(map_info.guard_information.row, map_info.guard_information.column, map_info.guard_information.direction)
+file = "test_map.txt"
+map = Map.create_from_file(file)
+guard = Guard.create_from_file(file)
 
 positions = set()
-while guard_in_map(map_info):
-    for guard_info in move(map_info):
+while guard.still_in_map(map):
+    for state in guard.move(map):
+        positions.add((state.position.row, state.position.column))
+
+print(len(positions))
+
+""" initial_guard_information = GuardInformation(map.guard_information.row, map.guard_information.column, map.guard_information.direction)
+
+positions = set()
+while guard_in_map(map):
+    for guard_info in move(map):
         positions.add((guard_info.row, guard_info.column))
 
 print(len(positions))
@@ -139,20 +216,20 @@ positions.remove((initial_guard_information.row,initial_guard_information.column
 
 for position in positions:
 
-    map_info.guard_information = GuardInformation(initial_guard_information.row, initial_guard_information.column, initial_guard_information.direction)
-    map_info.reset_guard_infos()
+    map.guard_information = GuardInformation(initial_guard_information.row, initial_guard_information.column, initial_guard_information.direction)
+    map.reset_guard_infos()
 
-    map_info.add_obstacle(position[0], position[1])
+    map.add_obstacle(position[0], position[1])
 
-    while guard_in_map(map_info):
-        if move(map_info) == None:
+    while guard_in_map(map):
+        if move(map) == None:
             loop_obstacles.append(position)
             break
 
-    map_info.remove_obstacle(position[0], position[1])
+    map.remove_obstacle(position[0], position[1])
 
 print(len(loop_obstacles))
-
+ """
 
 
 
