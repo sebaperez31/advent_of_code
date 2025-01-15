@@ -146,7 +146,6 @@ for position in positions:
 
     while guard_in_map(map_info):
         if move(map_info) == None:
-            print(f"loop detected! with obstacle in {position}")
             loop_obstacles.append(position)
             break
 
