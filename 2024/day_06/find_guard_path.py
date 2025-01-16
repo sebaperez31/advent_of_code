@@ -206,22 +206,25 @@ class Map:
 file = "map.txt"
 map = Map.create_from_file(file)
 guard = Guard.create_from_file(file)
-initial_state = State(Position(guard.current_state.position.row, guard.current_state.position.column), guard.current_state.direction)
+initial_position = Position(guard.current_state.position.row, guard.current_state.position.column)
 
-positions = set()
+positions = dict()
+previous_state = None
 while guard.still_in_map(map):
-    for state in guard.move(map):
-        positions.add(state.position)
+    states = guard.move(map)
+    for state in states:
+        if (state.position not in positions):
+            positions[state.position] = previous_state
+        previous_state = state
 
 print(len(positions))
 
 loop_obstacles = []
 
-positions.remove(initial_state.position)
+positions.pop(initial_position)
 
-
-for position in positions:
-    new_guard = Guard(State(Position(initial_state.position.row, initial_state.position.column),initial_state.direction))
+for position, initial_state in positions.items():
+    new_guard = Guard(State(Position(initial_state.position.row, initial_state.position.column), initial_state.direction))
     map.add_obstacle(position.row, position.column)
     states = set()
     while new_guard.still_in_map(map):
