@@ -27,7 +27,7 @@ class State:
         self.direction = direction
     
     def __hash__(self):
-        return hash((self.position, int(self.direction)))
+        return hash((self.position, self.direction))
 
     def __eq__(self, other):
         if isinstance(other, State):
@@ -203,7 +203,7 @@ class Map:
 
     return new_guard_infos """
         
-file = "test_map.txt"
+file = "map.txt"
 map = Map.create_from_file(file)
 guard = Guard.create_from_file(file)
 initial_state = State(Position(guard.current_state.position.row, guard.current_state.position.column), guard.current_state.direction)
@@ -215,20 +215,24 @@ while guard.still_in_map(map):
 
 print(len(positions))
 
+loop_obstacles = []
 
-""" loop_obstacles = []
+positions.remove(initial_state.position)
 
-positions.remove((initial_state.position.row,initial_state.position.column))
 
 for position in positions:
     new_guard = Guard(State(Position(initial_state.position.row, initial_state.position.column),initial_state.direction))
-    map.add_obstacle(position[0], position[1])
-
+    map.add_obstacle(position.row, position.column)
+    states = set()
     while new_guard.still_in_map(map):
-        for state in guard.move(map):
-            # aca hay que hacer algo!!
+        for state in new_guard.move(map):
+            if (state in states):
+                loop_obstacles.append(position)
+                new_guard.current_state.position = Position(-1, -1) # sacamos al guardia del mapa
+                break
+            else:
+                states.add(state)
 
+    map.remove_obstacle(position.row, position.column)
 
-    map.remove_obstacle(position[0], position[1])
-
-print(len(loop_obstacles)) """
+print(len(loop_obstacles))
