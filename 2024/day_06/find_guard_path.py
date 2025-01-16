@@ -223,19 +223,18 @@ loop_obstacles = []
 
 positions.pop(initial_position)
 
-for position, initial_state in positions.items():
+for obstacle, initial_state in positions.items():
     new_guard = Guard(State(Position(initial_state.position.row, initial_state.position.column), initial_state.direction))
-    map.add_obstacle(position.row, position.column)
+    map.add_obstacle(obstacle.row, obstacle.column)
     states = set()
     while new_guard.still_in_map(map):
         for state in new_guard.move(map):
             if (state in states):
-                loop_obstacles.append(position)
+                loop_obstacles.append(obstacle)
                 new_guard.current_state.position = Position(-1, -1) # sacamos al guardia del mapa
                 break
             else:
                 states.add(state)
-
-    map.remove_obstacle(position.row, position.column)
+    map.remove_obstacle(obstacle.row, obstacle.column)
 
 print(len(loop_obstacles))
