@@ -1,32 +1,34 @@
 from itertools import product
 
+def compute(input1, input2, operator):
+    match operator:
+        case "+":
+            return input1 + input2
+        case "*":
+            return input1 * input2
+        case "|":
+            return int(str(input1) + str(input2))
+
 operators = ["+", "*", "|"]
 
-calibration = 0
+final_result = 0
 with open("complete_list.txt") as file:
     for line in file:
         items = line.rstrip().split(" ")
-        result = int(items[0].replace(":",""))
-        values = [int(item) for item in items[1:]]
-        options = list(product(operators, repeat=len(values)-1))
-        for option in options:
-            option_result = values[0]
-            for index, operator in enumerate(option):
-                match operator:
-                    case "+":
-                        option_result = option_result + values[index + 1]
-                    case "*":
-                        option_result = option_result * values[index + 1]
-                    case "|":
-                        option_result = int(str(option_result) + str(values[index + 1]))
-                if (option_result > result):
+        output = int(items[0].replace(":",""))
+        input = [int(item) for item in items[1:]]
+        operators_options = list(product(operators, repeat=len(input)-1))
+        for operators_option in operators_options:
+            option_output = input[0]
+            for index, operator in enumerate(operators_option):
+                option_output = compute(option_output, input[index + 1], operator)
+                if (option_output > output):
                     break
-            if option_result == result:
-                calibration += result
+            if option_output == output:
+                final_result += output
                 break
             
-
-print(calibration)
+print(final_result)
 
 
 
