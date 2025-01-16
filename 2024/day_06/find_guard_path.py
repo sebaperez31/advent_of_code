@@ -13,10 +13,26 @@ class Position:
         self.row = row
         self.column = column
     
+    def __hash__(self):
+        return hash((self.row, self.column))
+
+    def __eq__(self, other):
+        if isinstance(other, Position):
+            return self.row == other.row and self.column == other.column
+        return False
+    
 class State:
     def __init__(self, position, direction):
         self.position = position
         self.direction = direction
+    
+    def __hash__(self):
+        return hash((self.position, int(self.direction)))
+
+    def __eq__(self, other):
+        if isinstance(other, State):
+            return self.position == other.position and self.direction == other.direction
+        return False
 
 class Guard:
     def __init__(self, state):
@@ -187,50 +203,32 @@ class Map:
 
     return new_guard_infos """
         
-    
-
-
 file = "test_map.txt"
 map = Map.create_from_file(file)
 guard = Guard.create_from_file(file)
+initial_state = State(Position(guard.current_state.position.row, guard.current_state.position.column), guard.current_state.direction)
 
 positions = set()
 while guard.still_in_map(map):
     for state in guard.move(map):
-        positions.add((state.position.row, state.position.column))
+        positions.add(state.position)
 
 print(len(positions))
 
-""" initial_guard_information = GuardInformation(map.guard_information.row, map.guard_information.column, map.guard_information.direction)
 
-positions = set()
-while guard_in_map(map):
-    for guard_info in move(map):
-        positions.add((guard_info.row, guard_info.column))
+""" loop_obstacles = []
 
-print(len(positions))
-
-loop_obstacles = []
-
-positions.remove((initial_guard_information.row,initial_guard_information.column))
+positions.remove((initial_state.position.row,initial_state.position.column))
 
 for position in positions:
-
-    map.guard_information = GuardInformation(initial_guard_information.row, initial_guard_information.column, initial_guard_information.direction)
-    map.reset_guard_infos()
-
+    new_guard = Guard(State(Position(initial_state.position.row, initial_state.position.column),initial_state.direction))
     map.add_obstacle(position[0], position[1])
 
-    while guard_in_map(map):
-        if move(map) == None:
-            loop_obstacles.append(position)
-            break
+    while new_guard.still_in_map(map):
+        for state in guard.move(map):
+            # aca hay que hacer algo!!
+
 
     map.remove_obstacle(position[0], position[1])
 
-print(len(loop_obstacles))
- """
-
-
-
-
+print(len(loop_obstacles)) """
