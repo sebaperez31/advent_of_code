@@ -6,19 +6,27 @@ import numpy as np
 Position = namedtuple("Position", ["row", "column"])
 
 def in_map(position, map_size):
-    return position.row >= 0 and position.row < map_size and position.column >= 0 and position.column < map_size
+    return position[0] >= 0 and position[0] < map_size and position[1] >= 0 and position[1] < map_size
+
+def compute_antinodes(antenna, diff, map_size):
+    antinodes = []
+    i = 0
+    while True:
+        antinode = antenna + i * diff
+        if in_map(antinode, map_size):
+            antinodes.append(Position(antinode[0], antinode[1]))
+            i += 1
+        else:
+            break
+    return antinodes
 
 def get_antinodes(antennas, map_size):
-    antenna1 = antennas[0]
-    antenna2 = antennas[1]
-    diff = Position(antenna2.row - antenna1.row, antenna2.column - antenna1.column)
-    antinode1 = Position(antenna2.row + diff.row, antenna2.column + diff.column)
-    antinode2 = Position(antenna1.row - diff.row, antenna1.column - diff.column)
+    antenna1 = np.array(antennas[0])
+    antenna2 = np.array(antennas[1])
+    diff = antenna2 - antenna1
     antinodes = []
-    if in_map(antinode1, map_size):
-        antinodes.append(antinode1)
-    if in_map(antinode2, map_size):
-        antinodes.append(antinode2)
+    antinodes.extend(compute_antinodes(antenna1, -diff, map_size))
+    antinodes.extend(compute_antinodes(antenna2,  diff, map_size))
     return antinodes
         
 antennas = dict()
