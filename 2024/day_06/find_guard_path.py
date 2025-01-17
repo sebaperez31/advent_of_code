@@ -141,67 +141,6 @@ class Map:
                     map.add_obstacle(row, column)
         return map
     
-
-""" def move(map_info):
-    guard_info = map_info.guard_information
-    initial_position = (guard_info.row, guard_info.column)
-    initial_direction = guard_info.direction
-    new_guard_infos = []
-    match guard_info.direction:
-        case Direction.Up:
-            if (guard_info.column in map_info.obstacles_by_column):
-                rows = list(filter(lambda row : row < guard_info.row, map_info.obstacles_by_column[guard_info.column]))
-                if len(rows) > 0:
-                    guard_info.row = max(rows) + 1
-                    guard_info.direction = Direction.Right
-                else:
-                    guard_info.row = -1
-            else:
-                guard_info.row = -1
-            new_guard_infos = [GuardInformation(row, guard_info.column, initial_direction) for row in range(initial_position[0], guard_info.row, -1)]
-        case Direction.Down:
-            if guard_info.column in map_info.obstacles_by_column:
-                rows = list(filter(lambda row : row > guard_info.row, map_info.obstacles_by_column[guard_info.column]))
-                if len(rows) > 0:
-                    guard_info.row = min(rows) - 1
-                    guard_info.direction = Direction.Left
-                else:
-                    guard_info.row = map_info.size
-            else:
-                guard_info.row = map_info.size
-            new_guard_infos = [GuardInformation(row, guard_info.column, initial_direction) for row in range(initial_position[0], guard_info.row, 1)]
-        case Direction.Left:
-            if guard_info.row in map_info.obstacles_by_row:
-                columns = list(filter(lambda col : col < guard_info.column, map_info.obstacles_by_row[guard_info.row]))
-                if len(columns) > 0:
-                    guard_info.column = max(columns) + 1
-                    guard_info.direction = Direction.Up
-                else:
-                    guard_info.column = -1
-            else:
-                guard_info.column = -1
-            new_guard_infos = [GuardInformation(guard_info.row, column, initial_direction) for column in range(initial_position[1], guard_info.column, -1)]
-        case Direction.Right:
-            if guard_info.row in map_info.obstacles_by_row:
-                columns = list(filter(lambda col : col > guard_info.column, map_info.obstacles_by_row[guard_info.row]))
-                if len(columns) > 0:
-                    guard_info.column = min(columns) - 1
-                    guard_info.direction = Direction.Down
-                else:
-                    guard_info.column = map_info.size
-            else:
-                guard_info.column = map_info.size
-            new_guard_infos = [GuardInformation(guard_info.row, column, initial_direction) for column in range(initial_position[1], guard_info.column, 1)]
-
-    for new_guard_info in new_guard_infos:
-        key = f"{new_guard_info.row}-{new_guard_info.column}-{new_guard_info.direction}"
-        if key in map_info.guard_infos:
-            # loop detected!
-            return None
-        else:
-            map_info.guard_infos.add(key)
-
-    return new_guard_infos """
         
 file = "map.txt"
 map = Map.create_from_file(file)
