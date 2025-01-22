@@ -54,7 +54,6 @@ score = 0
 for i in range(size):
     for j in range(size):
         if map[i,j] == 0:
-            result = move_up(Position(i,j), map, size)
-            score += len(result)
+            score += len(move_up(Position(i,j), map, size))
 
 print(score)
