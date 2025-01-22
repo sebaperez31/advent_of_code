@@ -27,12 +27,14 @@ def get_next_positions(current_position, map, map_size):
     
     return next_positions
 
-def move_up(current_position, map, map_size, result):
+def move_up(current_position, map, map_size):
     if map[current_position.row, current_position.column] == 9:
-        result.append(current_position)
+        return [current_position]
     else:
+        result = []
         for next_position in get_next_positions(current_position, map, map_size):
-            move_up(next_position, map, map_size, result)
+            result += move_up(next_position, map, map_size)
+        return result
     
 map = None
 row = 0
@@ -52,8 +54,7 @@ score = 0
 for i in range(size):
     for j in range(size):
         if map[i,j] == 0:
-            result = []
-            move_up(Position(i,j), map, size, result)
+            result = move_up(Position(i,j), map, size)
             score += len(result)
 
 print(score)
