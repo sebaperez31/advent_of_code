@@ -4,28 +4,21 @@ from collections import namedtuple
 Position = namedtuple("Position", ["row", "column"])
 
 def get_next_positions(current_position, map, map_size):
-    next_positions = []
+    next_possible_positions = []
+
     if current_position.row > 0:
-        up = Position(current_position.row - 1, current_position.column)
-        if map[up.row, up.column] - map[current_position.row, current_position.column] == 1:
-            next_positions.append(up)
+        next_possible_positions.append(Position(current_position.row - 1, current_position.column))
     
     if current_position.row < map_size - 1:
-        down = Position(current_position.row + 1, current_position.column)
-        if map[down.row, down.column] - map[current_position.row, current_position.column] == 1:
-            next_positions.append(down)
+        next_possible_positions.append(Position(current_position.row + 1, current_position.column))
 
     if current_position.column > 0:
-        right = Position(current_position.row, current_position.column - 1)
-        if map[right.row, right.column] - map[current_position.row, current_position.column] == 1:
-            next_positions.append(right)
+        next_possible_positions.append(Position(current_position.row, current_position.column - 1))
 
     if current_position.column < map_size - 1:
-        left = Position(current_position.row, current_position.column + 1)
-        if map[left.row, left.column] - map[current_position.row, current_position.column] == 1:
-            next_positions.append(left)
+        next_possible_positions.append(Position(current_position.row, current_position.column + 1))
     
-    return next_positions
+    return [position for position in next_possible_positions if map[position.row, position.column] - map[current_position.row, current_position.column] == 1]
 
 def move_up(current_position, map, map_size):
     if map[current_position.row, current_position.column] == 9:
