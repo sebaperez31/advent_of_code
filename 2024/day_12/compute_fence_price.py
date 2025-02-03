@@ -14,6 +14,9 @@ Garden = namedtuple("Garden", ["name", "position"])
 
 Fence = namedtuple("Fence", ["position", "direction"])
 
+def get_name(map, position):
+    return map[position.row, position.column]
+
 def get_near_garden_position(position, direction):
     match direction:
         case Direction.Up:
@@ -68,15 +71,15 @@ class Region:
         return near_garden in self.gardens
 
 def get_near_gardens_from_direction(position, map, map_size, processed_positions, direction):
-    region_name = map[position.row, position.column]
+    region_name = get_name(map, position)
     near_garden_position = get_near_garden_position(position, direction)
-    near_garden = Garden(map[near_garden_position.row, near_garden_position.column], near_garden_position)
-    near_gardens = []
-    if near_garden.position not in processed_positions and near_garden.name == region_name:
-        processed_positions.add(near_garden.position)
-        near_gardens.append(near_garden)
-        near_gardens += get_near_gardens(near_garden.position, map, map_size, processed_positions)            
-    return near_gardens
+    near_garden_name = get_name(map, near_garden_position)
+    if near_garden_position in processed_positions or near_garden_name != region_name:
+        return []
+
+    processed_positions.add(near_garden_position)
+    near_garden = Garden(near_garden_name, near_garden_position)
+    return [near_garden] + get_near_gardens(near_garden.position, map, map_size, processed_positions)            
 
 def get_near_gardens(position, map, map_size, processed_positions):
     near_gardens = []
@@ -105,7 +108,7 @@ def get_region(position, map, map_size, processed_positions):
     
     processed_positions.add(position)
     
-    current_garden = Garden(map[position.row, position.column], position)
+    current_garden = Garden(get_name(map, position), position)
     region = Region(current_garden.name)
     region.add_garden(current_garden)
     region.add_gardens(get_near_gardens(position, map, map_size, processed_positions))
