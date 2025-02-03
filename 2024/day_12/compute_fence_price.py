@@ -12,6 +12,8 @@ Position = namedtuple("Position", ["row", "column"])
 
 GardenPlot = namedtuple("GardenPlot", ["name", "row", "column"])
 
+Fence = namedtuple("Fence", ["row", "column", "direction"])
+
 def get_near_garden_plot_position(row, column, direction):
     match direction:
         case Direction.Up:
@@ -42,23 +44,28 @@ class Region:
         return len(self.garden_plots)
 
     def get_perimeter(self):
-        perimeter = 0
+        return len(self.get_fences())
+
+    def get_number_of_sides(self):
+        return 0
+
+    def get_fences(self):
+        fences = []
         for garden_plot in self.garden_plots:
             if not self.exist_near_garden_plot(garden_plot, Direction.Up):
-                perimeter += 1
+                fences.append(Fence(garden_plot.row, garden_plot.column, Direction.Up))
             if not self.exist_near_garden_plot(garden_plot, Direction.Down):
-                perimeter += 1
+                fences.append(Fence(garden_plot.row, garden_plot.column, Direction.Down))
             if not self.exist_near_garden_plot(garden_plot, Direction.Left):
-                perimeter += 1
+                fences.append(Fence(garden_plot.row, garden_plot.column, Direction.Left))
             if not self.exist_near_garden_plot(garden_plot, Direction.Right):
-                perimeter += 1
-        return perimeter
+                fences.append(Fence(garden_plot.row, garden_plot.column, Direction.Right))
+        return fences
 
     def exist_near_garden_plot(self, garden_plot, direction):
         near_garden_plot_position = get_near_garden_plot_position(garden_plot.row, garden_plot.column, direction)
         near_garden_plot = GardenPlot(self.name, near_garden_plot_position.row, near_garden_plot_position.column)
         return near_garden_plot in self.garden_plots
-
 
 def get_near_garden_plots_from_direction(row, column, map, map_size, processed_garden_plots, direction):
     region_name = map[row, column]
@@ -68,10 +75,8 @@ def get_near_garden_plots_from_direction(row, column, map, map_size, processed_g
     if near_garden_plot not in processed_garden_plots and near_garden_plot.name == region_name:
         processed_garden_plots.add(near_garden_plot)
         near_garden_plots.append(near_garden_plot)
-        near_garden_plots += get_near_garden_plots(near_garden_plot.row, near_garden_plot.column, map, map_size, processed_garden_plots)        
-    
+        near_garden_plots += get_near_garden_plots(near_garden_plot.row, near_garden_plot.column, map, map_size, processed_garden_plots)            
     return near_garden_plots
-
 
 def get_near_garden_plots(row, column, map, map_size, processed_garden_plots):
     near_garden_plots = []
@@ -93,13 +98,11 @@ def get_near_garden_plots(row, column, map, map_size, processed_garden_plots):
         near_garden_plots += get_near_garden_plots_from_direction(row, column, map, map_size, processed_garden_plots, Direction.Right)
 
     return near_garden_plots 
-
     
 def get_region(row, column, map, map_size, processed_garden_plots):
     current_garden_plot = GardenPlot(map[row, column], row, column)
     if current_garden_plot in processed_garden_plots:
         return
-    
     processed_garden_plots.add(current_garden_plot)
     region = Region(map[row, column])
     region.add_garden_plot(current_garden_plot)
