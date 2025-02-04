@@ -32,6 +32,8 @@ class Region:
     def __init__(self, name):
         self.name = name
         self.gardens = set()
+        self.horizontal_fences_by_row = dict()
+        self.vertical_fences_by_column = dict()
 
     def add_garden(self, garden):
         self.gardens.add(garden)
@@ -41,7 +43,7 @@ class Region:
             self.add_garden(new_garden)
     
     def compute_price(self):
-        return self.get_area() * self.get_perimeter()
+        return self.get_area() * self.get_number_of_sides()
 
     def get_area(self):
         return len(self.gardens)
@@ -49,8 +51,62 @@ class Region:
     def get_perimeter(self):
         return len(self.get_fences())
 
+    def get_number_of_horizontal_sides(self, horizontal_fences_in_row_sorted, direction):
+        result = 0
+        current_column = -2
+        for fence_in_row in [f for f in horizontal_fences_in_row_sorted if f.direction == direction]:
+            if fence_in_row.position.column - current_column > 1:
+                result += 1
+            current_column = fence_in_row.position.column
+        return result
+
+    def get_number_of_vertical_sides(self, vertical_fences_in_column_sorted, direction):
+        result = 0
+        current_row = -2
+        for fence_in_column in [f for f in vertical_fences_in_column_sorted if f.direction == direction]:
+            if fence_in_column.position.row - current_row > 1:
+                result += 1
+            current_row = fence_in_column.position.row
+        return result
+
     def get_number_of_sides(self):
-        return 0
+        self.load_fences_dicts()
+        number_of_sides = 0
+        
+        for horizontal_fences_in_row in self.horizontal_fences_by_row.values():
+            horizontal_fences_in_row_sorted = sorted(horizontal_fences_in_row, key = lambda fence : fence.position.column)
+            up_sides = self.get_number_of_horizontal_sides(horizontal_fences_in_row_sorted, Direction.Up)
+            down_sides = self.get_number_of_horizontal_sides(horizontal_fences_in_row_sorted, Direction.Down)
+            number_of_sides += up_sides + down_sides
+
+        for vertical_fences_in_column in self.vertical_fences_by_column.values():
+            vertical_fences_in_column_sorted = sorted(vertical_fences_in_column, key = lambda fence : fence.position.row)
+            left_sides = self.get_number_of_vertical_sides(vertical_fences_in_column_sorted, Direction.Left)
+            right_sides = self.get_number_of_vertical_sides(vertical_fences_in_column_sorted, Direction.Right)
+            number_of_sides += left_sides + right_sides
+        
+        return number_of_sides
+
+    def load_fences_dicts(self):
+        for fence in self.get_fences():
+            if fence.direction == Direction.Up or fence.direction == Direction.Down:
+                # horizontal fence
+                self.add_horizontal_fence(fence)    
+            else:
+                # vertical fence
+                self.add_vertical_fence(fence)
+
+    def add_horizontal_fence(self, fence):
+        if fence.position.row in self.horizontal_fences_by_row:
+            self.horizontal_fences_by_row[fence.position.row].append(fence)
+        else:
+            self.horizontal_fences_by_row[fence.position.row] = [fence]
+
+    def add_vertical_fence(self, fence):
+        if fence.position.column in self.vertical_fences_by_column:
+            self.vertical_fences_by_column[fence.position.column].append(fence)
+        else:
+            self.vertical_fences_by_column[fence.position.column] = [fence]
 
     def get_fences(self):
         fences = []
@@ -140,6 +196,7 @@ for row in range(map_size):
 
 total_price = 0
 for region in regions:
+    #print(region.name)
     total_price += region.compute_price()
 
 print(total_price)
