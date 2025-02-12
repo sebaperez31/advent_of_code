@@ -2,6 +2,7 @@ import re
 from collections import namedtuple
 from functools import reduce
 import operator
+import numpy as np
 
 Robot = namedtuple("Robot", ["px", "py", "vx", "vy"])
 
@@ -66,3 +67,43 @@ for updated_robot in updated_robots:
 
 safety_factor = reduce(operator.mul, robots_per_quadrant.values())
 print(safety_factor)
+
+def plot(robots, rows, columns):
+    positions = set()
+    for robot in robots:
+        positions.add((robot.px, robot.py))
+    
+    plot_robots = False
+    # looking for something like:
+    # .xxx.
+    # .xxx.
+    # .xxx.
+    for position in positions:
+        if  (position[0]-1, position[1])   in positions and  \
+            (position[0]+1, position[1])   in positions and \
+            (position[0],   position[1]-1) in positions and \
+            (position[0],   position[1]+1) in positions and \
+            (position[0]-1, position[1]-1) in positions and \
+            (position[0]+1, position[1]+1) in positions and \
+            (position[0]+1, position[1]-1) in positions and \
+            (position[0]-1, position[1]+1) in positions:
+            plot_robots = True
+            break 
+    
+    if plot_robots:
+        matrix = np.full((rows, columns), ".")
+        for robot in robots:
+            matrix[robot.py, robot.px] = "x"
+        for row in range(rows):
+            line = ""
+            for column in range(columns):
+                line += matrix[row, column]
+            print(line)
+        input()
+
+times = 1
+while True:
+    print(f"times = {times}")
+    updated_robots = list(map(lambda robot : move(robot, times, rows, columns), robots))
+    plot(updated_robots, rows, columns)
+    times += 1
