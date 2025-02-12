@@ -15,6 +15,20 @@ Button = namedtuple("Button", ["delta_x", "delta_y"])
 
 ClawMachine = namedtuple("ClawMachine", ["button_a", "button_b", "price_position"])
 
+def get_tokens(claw_machine):
+    button_b_denominator = claw_machine.button_a.delta_x * claw_machine.button_b.delta_y - claw_machine.button_a.delta_y * claw_machine.button_b.delta_x 
+    if button_b_denominator == 0:
+        return 0
+    button_b_numerator = claw_machine.button_a.delta_x * claw_machine.price_position.y - claw_machine.button_a.delta_y * claw_machine.price_position.x
+    if button_b_numerator % button_b_denominator != 0:
+        return 0
+    n_button_b = button_b_numerator // button_b_denominator
+    button_a_numerator = claw_machine.price_position.x - claw_machine.button_b.delta_x * n_button_b
+    if button_a_numerator % claw_machine.button_a.delta_x:
+        return 0
+    n_button_a = button_a_numerator // claw_machine.button_a.delta_x
+    return 3 * n_button_a + 1 * n_button_b
+
 claw_machines = []
 with open("complete_data.txt") as file:
     button_a = None
@@ -42,28 +56,5 @@ with open("complete_data.txt") as file:
             case InputFileData.NewMachine:
                 input_file_data = InputFileData.ButtonA
 
-
-def get_tokens_for_unique_solution(claw_machine):
-    return 1
-
-def get_tokens(claw_machine):
-    button_b_denominator = claw_machine.button_a.delta_x * claw_machine.button_b.delta_y - claw_machine.button_a.delta_y * claw_machine.button_b.delta_x 
-    if button_b_denominator == 0:
-        return 0
-    button_b_numerator = claw_machine.button_a.delta_x * claw_machine.price_position.y - claw_machine.button_a.delta_y * claw_machine.price_position.x
-    if button_b_numerator % button_b_denominator != 0:
-        return 0
-    n_button_b = button_b_numerator // button_b_denominator
-    button_a_numerator = claw_machine.price_position.x - claw_machine.button_b.delta_x * n_button_b
-    if button_a_numerator % claw_machine.button_a.delta_x:
-        return 0
-    n_button_a = button_a_numerator // claw_machine.button_a.delta_x
-    return 3 * n_button_a + 1 * n_button_b
-
-    
-
-tokens = 0
-for claw_machine in claw_machines:
-    tokens += get_tokens(claw_machine)
-
+tokens = sum(map(get_tokens, claw_machines))
 print(tokens)
