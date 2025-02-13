@@ -6,6 +6,8 @@ import numpy as np
 
 Robot = namedtuple("Robot", ["px", "py", "vx", "vy"])
 
+Position = namedtuple("Position", ["x", "y"])
+
 def move(robot, times, rows, columns):
     # compute new_px
     new_px = robot.px + (times * robot.vx) % columns
@@ -66,12 +68,12 @@ for updated_robot in updated_robots:
         robots_per_quadrant[quadrant] = robots_per_quadrant[quadrant] + 1
 
 safety_factor = reduce(operator.mul, robots_per_quadrant.values())
-print(safety_factor)
+print(f'safety_factor = {safety_factor}')
 
 def plot(robots, rows, columns):
     positions = set()
     for robot in robots:
-        positions.add((robot.px, robot.py))
+        positions.add(Position(robot.px, robot.py))
     
     plot_robots = False
     # looking for something like:
@@ -79,14 +81,14 @@ def plot(robots, rows, columns):
     # .xxx.
     # .xxx.
     for position in positions:
-        if  (position[0]-1, position[1])   in positions and  \
-            (position[0]+1, position[1])   in positions and \
-            (position[0],   position[1]-1) in positions and \
-            (position[0],   position[1]+1) in positions and \
-            (position[0]-1, position[1]-1) in positions and \
-            (position[0]+1, position[1]+1) in positions and \
-            (position[0]+1, position[1]-1) in positions and \
-            (position[0]-1, position[1]+1) in positions:
+        if  Position(position.x - 1, position.y)     in positions and  \
+            Position(position.x + 1, position.y)     in positions and \
+            Position(position.x,     position.y - 1) in positions and \
+            Position(position.x,     position.y + 1) in positions and \
+            Position(position.x - 1, position.y - 1) in positions and \
+            Position(position.x + 1, position.y + 1) in positions and \
+            Position(position.x + 1, position.y - 1) in positions and \
+            Position(position.x - 1, position.y + 1) in positions:
             plot_robots = True
             break 
     
